@@ -21,8 +21,8 @@ A Flask-based web application that analyzes password strength using security par
 ## Installation
 
 ```bash
-git clone https://github.com/Abhishith999/Password-Security-Analyzer.git
-cd Password-Security-Analyzer
+git clone https://github.com/Abhishith999/Password-Strength-Analyzer.git
+cd Password-Strength-Analyzer
 pip install -r requirements.txt
 python app.py
 ```

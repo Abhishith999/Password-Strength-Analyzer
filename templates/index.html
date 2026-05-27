@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d3447 0%, #4e5d78 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #2f3b52;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+            animation: fadeIn 0.45s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #1f2a40;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #5f6f8c;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #23304a;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #d9dee9;
+            background: #f7f9fc;
+            font-size: 16px;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+            background: #ffffff;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 20px;
+            color: #667eea;
+            padding: 8px;
+        }
+
+        .toggle-password:hover {
+            transform: scale(1.05);
+        }
+
+        .strength-meter {
+            margin-top: 14px;
+            height: 10px;
+            background: #ebeef4;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0;
+            transform-origin: left;
+            transition: width 0.3s ease;
+        }
+
+        .strength-bar.weak {
+            width: 20%;
+            background: #ff4d6d;
+        }
+
+        .strength-bar.moderate {
+            width: 50%;
+            background: #ffa94d;
+        }
+
+        .strength-bar.strong {
+            width: 75%;
+            background: #ffd43b;
+        }
+
+        .strength-bar.very-strong {
+            width: 100%;
+            background: #40c057;
+        }
+
+        .strength-text {
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .strength-text.weak {
+            color: #d6336c;
+        }
+
+        .strength-text.moderate {
+            color: #f08000;
+        }
+
+        .strength-text.strong {
+            color: #e67700;
+        }
+
+        .strength-text.very-strong {
+            color: #37b24d;
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 18px 35px rgba(102, 126, 234, 0.2);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .result-card {
+            margin-top: 30px;
+            padding: 24px;
+            border-radius: 20px;
+            background: #f7f8fc;
+            border: 1px solid #e7eaf3;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-score {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1f2a40;
+        }
+
+        .result-label {
+            font-size: 16px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            color: #ffffff;
+            background: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .checks-list {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            background: #ffffff;
+            border: 1px solid #e7eaf3;
+            transition: background-color 0.2s ease;
+        }
+
+        .check-item.passed {
+            border-left-color: #37b24d;
+        }
+
+        .check-item.failed {
+            border-left-color: #f03e3e;
+        }
+
+        .check-icon {
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .check-text {
+            font-size: 14px;
+            color: #384060;
+        }
+
+        .db-status {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 18px;
+            border-left: 5px solid;
+            background: #ffffff;
+            border: 1px solid #e7eaf3;
+        }
+
+        .db-status.success {
+            border-color: #37b24d;
+        }
+
+        .db-status.error {
+            border-color: #f03e3e;
+        }
+
+        .db-status-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .db-status-message {
+            color: #495057;
+            line-height: 1.55;
+        }
+
+        .alternative-card {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 18px;
+            background: #eef6ff;
+            border: 1px solid #dbe5ff;
+        }
+
+        .alternative-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .alternative-header strong {
+            font-size: 14px;
+            color: #1f2a40;
+        }
+
+        .copy-btn {
+            border: none;
+            background: #667eea;
+            color: #ffffff;
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #5563d4;
+        }
+
+        .alternative-string {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            padding: 14px;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            color: #2f3b52;
+            border: 1px solid #dbe5ff;
+        }
+
+        .empty-state {
+            padding: 30px 16px;
+            border-radius: 18px;
+            text-align: center;
+            background: #f8f9ff;
+            color: #6e7a98;
+            margin-top: 24px;
+            border: 1px dashed #dce4f2;
+        }
+
+        .empty-state-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔐 Password Strength Analyzer</h1>
+    <p class="subtitle">Type a password below to get instant strength feedback, DB reuse validation, and a secure alternative.</p>
+
+    <form action="/analyze" method="POST">
+        <div class="form-group">
+            <label for="user_password">Enter Password</label>
+            <div class="password-input-wrapper">
+                <input type="password" id="user_password" name="password" required placeholder="Type password here..." value="{{ password|default('') }}">
+                <button type="button" class="toggle-password" id="toggleBtn" aria-label="Show or hide password">👁️</button>
+            </div>
+            <div class="strength-meter">
+                <div class="strength-bar" id="strengthBar"></div>
+            </div>
+            <div class="strength-text" id="strengthText"></div>
+        </div>
+
+        <button class="action-btn" type="submit">Analyze Password</button>
+    </form>
+
+    <div id="results">
+        {% if score is defined %}
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-score">{{ score }}/6</div>
+                    <div class="result-label">{{ label }}</div>
+                </div>
+
+                <ul class="checks-list">
+                    {% for check, passed in details.items() %}
+                        <li class="check-item {% if passed %}passed{% else %}failed{% endif %}">
+                            <span class="check-icon">{% if passed %}✅{% else %}❌{% endif %}</span>
+                            <span class="check-text">{{ check }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if db_status %}
+                    <div class="db-status {% if db_success %}success{% else %}error{% endif %}">
+                        <div class="db-status-title">
+                            <span>{% if db_success %}✅{% else %}⚠️{% endif %}</span>
+                            <span>Database Status</span>
+                        </div>
+                        <div class="db-status-message">{{ db_status }}</div>
+                    </div>
+                {% endif %}
+
+                {% if alternative %}
+                    <div class="alternative-card">
+                        <div class="alternative-header">
+                            <strong>Suggested Secure Alternative</strong>
+                            <button type="button" class="copy-btn" id="copyBtn">Copy</button>
+                        </div>
+                        <div class="alternative-string" id="alternativeString">{{ alternative }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">✨</div>
+                <div>Enter a password to see strength analysis, reuse detection, and a secure suggestion.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const passwordInput = document.getElementById('user_password');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    const copyBtn = document.getElementById('copyBtn');
+    const alternativeString = document.getElementById('alternativeString');
+
+    const updateStrength = (password) => {
+        if (!password) {
+            strengthBar.className = 'strength-bar';
+            strengthText.textContent = '';
+            return;
+        }
+
+        const hasUpper = /[A-Z]/.test(password);
+        const hasLower = /[a-z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        const hasSpecial = /[\W_]/.test(password);
+        const isLong = password.length >= 8;
+
+        let score = 0;
+        score += hasUpper ? 1 : 0;
+        score += hasLower ? 1 : 0;
+        score += hasDigit ? 1 : 0;
+        score += hasSpecial ? 1 : 0;
+        score += isLong ? 1 : 0;
+
+        // Not common password cannot be checked client-side, so we show it as "likely"
+        const notCommon = 1;
+        score += notCommon;
+
+        strengthBar.className = 'strength-bar';
+        let label = '';
+        if (score === 6) {
+            strengthBar.classList.add('very-strong');
+            label = '✅ Very Strong';
+            strengthText.className = 'strength-text very-strong';
+        } else if (score >= 4) {
+            strengthBar.classList.add('strong');
+            label = '👍 Strong';
+            strengthText.className = 'strength-text strong';
+        } else if (score >= 2) {
+            strengthBar.classList.add('moderate');
+            label = '⚡ Moderate';
+            strengthText.className = 'strength-text moderate';
+        } else {
+            strengthBar.classList.add('weak');
+            label = '⚠️ Weak';
+            strengthText.className = 'strength-text weak';
+        }
+
+        strengthText.textContent = `${label} (${score}/6)`;
+    };
+
+    passwordInput.addEventListener('input', (event) => {
+        updateStrength(event.target.value);
+    });
+
+    toggleBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggleBtn.textContent = isPassword ? '🙈' : '👁️';
+    });
+
+    if (copyBtn && alternativeString) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(alternativeString.textContent.trim());
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+            } catch (err) {
+                copyBtn.textContent = 'Failed';
+            }
+        });
+    }
+
+    // Initialize on page load if the input already has a value
+    updateStrength(passwordInput.value);
+</script>
+
+</body>
+</html>
